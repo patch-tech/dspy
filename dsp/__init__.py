@@ -1,7 +1,7 @@
-from .modules import *
-from .primitives import *
-from .templates import *
-from .utils import settings
+from dsp.modules import *
+from dsp.primitives import *
+from dsp.templates import *
+from dsp.utils import settings
 
 """
 TODO:
