@@ -1,10 +1,10 @@
 import re
 
-import dspy
-from dspy.signatures.signature import ensure_signature
-
-from ..primitives.program import Module
-from ..primitives.python_interpreter import CodePrompt, PythonInterpreter
+from dspy.predict.chain_of_thought import ChainOfThought
+from dspy.primitives.program import Module
+from dspy.primitives.python_interpreter import CodePrompt, PythonInterpreter
+from dspy.signatures.field import InputField, OutputField
+from dspy.signatures.signature import Signature, ensure_signature
 
 
 class ProgramOfThought(Module):
@@ -37,20 +37,20 @@ class ProgramOfThought(Module):
         )
         instr = "\n".join(instr)
 
-        self.code_generate = dspy.ChainOfThought(
-            dspy.Signature(
+        self.code_generate = ChainOfThought(
+            Signature(
                 self._generate_signature("generate").fields,
                 self._generate_instruction("generate"),
             ),
         )
-        self.code_regenerate = dspy.ChainOfThought(
-            dspy.Signature(
+        self.code_regenerate = ChainOfThought(
+            Signature(
                 self._generate_signature("regenerate").fields,
                 self._generate_instruction("regenerate"),
             ),
         )
-        self.generate_answer = dspy.ChainOfThought(
-            dspy.Signature(
+        self.generate_answer = ChainOfThought(
+            Signature(
                 self._generate_signature("answer").fields,
                 self._generate_instruction("answer"),
             ),
@@ -60,35 +60,35 @@ class ProgramOfThought(Module):
         signature_dict = dict(self.input_fields)
         fields_for_mode = {
             "generate": {
-                "generated_code": dspy.OutputField(
+                "generated_code": OutputField(
                     prefix="Code:",
                     desc="python code that answers the question",
                     format=str,
                 ),
             },
             "regenerate": {
-                "previous_code": dspy.InputField(
+                "previous_code": InputField(
                     prefix="Previous Code:",
                     desc="previously-generated python code that errored",
                     format=str,
                 ),
-                "error": dspy.InputField(
+                "error": InputField(
                     prefix="Error:",
                     desc="error message from previously-generated python code",
                 ),
-                "generated_code": dspy.OutputField(
+                "generated_code": OutputField(
                     prefix="Code:",
                     desc="python code that answers the question",
                     format=str,
                 ),
             },
             "answer": {
-                "final_generated_code": dspy.InputField(
+                "final_generated_code": InputField(
                     prefix="Code:",
                     desc="python code that answers the question",
                     format=str,
                 ),
-                "code_output": dspy.InputField(
+                "code_output": InputField(
                     prefix="Code Output:",
                     desc="output of previously-generated python code",
                 ),
@@ -96,7 +96,7 @@ class ProgramOfThought(Module):
             },
         }
         signature_dict.update(fields_for_mode[mode])
-        return dspy.Signature(signature_dict)
+        return Signature(signature_dict)
 
     def _generate_instruction(self, mode):
         mode_inputs = ", ".join(
@@ -145,10 +145,14 @@ class ProgramOfThought(Module):
             code_block += "\n" + last_line_match.group(1)
         else:
             code_block = re.sub(
-                r"([a-zA-Z_]\w* *=.*?)(?=[a-zA-Z_]\w* *=)", r"\1\n", code_block,
+                r"([a-zA-Z_]\w* *=.*?)(?=[a-zA-Z_]\w* *=)",
+                r"\1\n",
+                code_block,
             )
             code_block = re.sub(
-                r"([a-zA-Z_]\w* *=.*?)([a-zA-Z_]\w*)$", r"\1\n\2", code_block,
+                r"([a-zA-Z_]\w* *=.*?)([a-zA-Z_]\w*)$",
+                r"\1\n\2",
+                code_block,
             )
         return code_block, None
 
@@ -172,7 +176,9 @@ class ProgramOfThought(Module):
         while hop < self.max_iters and error:
             print("Error in code execution")
             code_data = self.code_regenerate(
-                question=kwargs["question"], previous_code=code, error=error,
+                question=kwargs["question"],
+                previous_code=code,
+                error=error,
             )
             parsed_code, error = self.parse_code(code_data)
             # FIXME: Don't try to execute the code if it didn't parse
@@ -182,6 +188,8 @@ class ProgramOfThought(Module):
                 print("Max hops reached. Error persists.")
                 return None
         answer_gen_result = self.generate_answer(
-            question=kwargs["question"], final_generated_code=code, code_output=output,
+            question=kwargs["question"],
+            final_generated_code=code,
+            code_output=output,
         )
         return answer_gen_result

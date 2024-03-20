@@ -9,6 +9,7 @@ from dsp.modules.lm import LM
 try:
     import google.generativeai as genai
     from google.api_core.exceptions import GoogleAPICallError
+
     google_api_error = GoogleAPICallError
 except ImportError:
     google_api_error = Exception
@@ -32,22 +33,22 @@ def giveup_hdlr(details):
 
 
 BLOCK_ONLY_HIGH = [
-  {
-    "category": "HARM_CATEGORY_HARASSMENT",
-    "threshold": "BLOCK_ONLY_HIGH",
-  },
-  {
-    "category": "HARM_CATEGORY_HATE_SPEECH",
-    "threshold": "BLOCK_ONLY_HIGH",
-  },
-  {
-    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-    "threshold": "BLOCK_ONLY_HIGH",
-  },
-  {
-    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-    "threshold": "BLOCK_ONLY_HIGH",
-  },
+    {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_ONLY_HIGH",
+    },
+    {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_ONLY_HIGH",
+    },
+    {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_ONLY_HIGH",
+    },
+    {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_ONLY_HIGH",
+    },
 ]
 
 
@@ -87,7 +88,9 @@ class Google(LM):
         self.provider = "google"
         kwargs = {
             "candidate_count": 1,
-            "temperature": 0.0 if "temperature" not in kwargs else kwargs["temperature"],
+            "temperature": (
+                0.0 if "temperature" not in kwargs else kwargs["temperature"]
+            ),
             "max_output_tokens": 2048,
             "top_p": 1,
             "top_k": 1,
@@ -95,9 +98,11 @@ class Google(LM):
         }
 
         self.config = genai.GenerationConfig(**kwargs)
-        self.llm = genai.GenerativeModel(model_name=model,
-                                         generation_config=self.config,
-                                         safety_settings=safety_settings)
+        self.llm = genai.GenerativeModel(
+            model_name=model,
+            generation_config=self.config,
+            safety_settings=safety_settings,
+        )
 
         self.kwargs = {
             "n": num_generations,
@@ -115,8 +120,8 @@ class Google(LM):
 
         # Google disallows "n" arguments
         n = kwargs.pop("n", None)
-        if n is not None and n > 1 and kwargs['temperature'] == 0.0:
-            kwargs['temperature'] = 0.7
+        if n is not None and n > 1 and kwargs["temperature"] == 0.0:
+            kwargs["temperature"] = 0.7
 
         response = self.llm.generate_content(prompt, generation_config=kwargs)
 

@@ -1,4 +1,6 @@
-from dsp.modules import *
+from dsp.modules.anthropic import Claude
+from dsp.modules.azure_openai import AzureOpenAI
+from dsp.modules.bedrock import *
 from dsp.primitives import *
 from dsp.templates import *
 from dsp.utils import settings

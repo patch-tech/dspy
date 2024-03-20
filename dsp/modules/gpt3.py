@@ -1,12 +1,4 @@
 import logging
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s",
-    handlers=[logging.FileHandler("openai_usage.log")],
-)
-
 import functools
 import json
 from typing import Any, Literal, Optional, cast
@@ -18,6 +10,14 @@ import dsp
 from dsp.modules.cache_utils import CacheMemory, NotebookCacheMemory, cache_turn_on
 from dsp.modules.lm import LM
 
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    handlers=[logging.FileHandler("openai_usage.log")],
+)
+
 try:
     OPENAI_LEGACY = int(openai.version.__version__[0]) == 0
 except Exception:
@@ -27,9 +27,7 @@ try:
     import openai.error
     from openai.openai_object import OpenAIObject
 
-    ERRORS = (
-        openai.error.RateLimitError,
-    )
+    ERRORS = (openai.error.RateLimitError,)
 except Exception:
     ERRORS = (openai.RateLimitError,)
     OpenAIObject = dict

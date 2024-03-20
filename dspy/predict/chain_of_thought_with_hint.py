@@ -1,9 +1,10 @@
-import dsp
-import dspy
-
-from .predict import Predict
+from dsp.modules.gpt3 import GPT3
+from dsp.utils import settings
+from dspy.predict.predict import Predict
+from dspy.signatures.field import OutputField
 
 # TODO: FIXME: Insert this right before the *first* output field. Also rewrite this to use the new signature system.
+
 
 class ChainOfThoughtWithHint(Predict):
     def __init__(self, signature, rationale_type=None, activated=True, **config):
@@ -12,24 +13,36 @@ class ChainOfThoughtWithHint(Predict):
         signature = self.signature
 
         *keys, last_key = signature.fields.keys()
-        rationale_type = rationale_type or dspy.OutputField(
+        rationale_type = rationale_type or OutputField(
             prefix="Reasoning: Let's think step by step in order to",
             desc="${produce the " + last_key + "}. We ...",
         )
-        self.extended_signature1 = self.signature.insert(-2, "rationale", rationale_type, type_=str)
+        self.extended_signature1 = self.signature.insert(
+            -2,
+            "rationale",
+            rationale_type,
+            type_=str,
+        )
 
-        DEFAULT_HINT_TYPE = dspy.OutputField()
-        self.extended_signature2 = self.extended_signature1.insert(-2, "hint", DEFAULT_HINT_TYPE, type_=str)
-    
+        DEFAULT_HINT_TYPE = OutputField()
+        self.extended_signature2 = self.extended_signature1.insert(
+            -2,
+            "hint",
+            DEFAULT_HINT_TYPE,
+            type_=str,
+        )
+
     def forward(self, **kwargs):
         signature = self.signature
 
-        if self.activated is True or (self.activated is None and isinstance(dsp.settings.lm, dsp.GPT3)):
-            if 'hint' in kwargs and kwargs['hint']:
+        if self.activated is True or (
+            self.activated is None and isinstance(settings.lm, GPT3)
+        ):
+            if "hint" in kwargs and kwargs["hint"]:
                 signature = self.extended_signature2
             else:
                 signature = self.extended_signature1
-        
+
         return super().forward(signature=signature, **kwargs)
 
 

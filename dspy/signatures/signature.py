@@ -122,7 +122,11 @@ class SignatureMeta(type(BaseModel)):
         return cls._get_fields_with_type("output")
 
     def _get_fields_with_type(cls, field_type) -> dict[str, FieldInfo]:
-        return {k: v for k, v in cls.model_fields.items() if v.json_schema_extra["__dspy_field_type"] == field_type}
+        return {
+            k: v
+            for k, v in cls.model_fields.items()
+            if v.json_schema_extra["__dspy_field_type"] == field_type
+        }
 
     def prepend(cls, name, field, type_=None) -> Type["Signature"]:
         return cls.insert(0, name, field, type_)
@@ -130,7 +134,9 @@ class SignatureMeta(type(BaseModel)):
     def append(cls, name, field, type_=None) -> Type["Signature"]:
         return cls.insert(-1, name, field, type_)
 
-    def insert(cls, index: int, name: str, field, type_: Type = None) -> Type["Signature"]:
+    def insert(
+        cls, index: int, name: str, field, type_: Type = None
+    ) -> Type["Signature"]:
         # It's posisble to set the type as annotation=type in pydantic.Field(...)
         # But this may be annoying for users, so we allow them to pass the type
         if type_ is None:
@@ -142,7 +148,11 @@ class SignatureMeta(type(BaseModel)):
         output_fields = list(cls.output_fields.items())
 
         # Choose the list to insert into based on the field type
-        lst = input_fields if field.json_schema_extra["__dspy_field_type"] == "input" else output_fields
+        lst = (
+            input_fields
+            if field.json_schema_extra["__dspy_field_type"] == "input"
+            else output_fields
+        )
         # We support negative insert indices
         if index < 0:
             index += len(lst) + 1
@@ -199,20 +209,24 @@ class SignatureMeta(type(BaseModel)):
 # For compatibility with the legacy dsp format, you can use the signature_to_template function.
 #
 class Signature(BaseModel, metaclass=SignatureMeta):
-    ""  # noqa: D419
+    """"""  # noqa: D419
 
     # Note: Don't put a docstring here, as it will become the default instructions
     # for any signature that doesn't define it's own instructions.
     pass
 
 
-def ensure_signature(signature: Union[str, Type[Signature]], instructions=None) -> Signature:
+def ensure_signature(
+    signature: Union[str, Type[Signature]], instructions=None
+) -> Signature:
     if signature is None:
         return None
     if isinstance(signature, str):
         return Signature(signature, instructions)
     if instructions is not None:
-        raise ValueError("Don't specify instructions when initializing with a Signature")
+        raise ValueError(
+            "Don't specify instructions when initializing with a Signature"
+        )
     return signature
 
 
@@ -277,7 +291,9 @@ def make_signature(
 
 def _parse_signature(signature: str) -> Tuple[Type, Field]:
     if signature.count("->") != 1:
-        raise ValueError(f"Invalid signature format: '{signature}', must contain exactly one '->'.")
+        raise ValueError(
+            f"Invalid signature format: '{signature}', must contain exactly one '->'."
+        )
 
     inputs_str, outputs_str = signature.split("->")
 
@@ -293,7 +309,10 @@ def _parse_signature(signature: str) -> Tuple[Type, Field]:
 def _parse_arg_string(string: str, names=None) -> Dict[str, str]:
     args = ast.parse("def f(" + string + "): pass").body[0].args.args
     names = [arg.arg for arg in args]
-    types = [str if arg.annotation is None else _parse_type_node(arg.annotation) for arg in args]
+    types = [
+        str if arg.annotation is None else _parse_type_node(arg.annotation)
+        for arg in args
+    ]
     return zip(names, types)
 
 

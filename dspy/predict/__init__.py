@@ -1,9 +1,1 @@
-from dspy.aggregation import majority
-from dspy.chain_of_thought import ChainOfThought
-from dspy.chain_of_thought_with_hint import ChainOfThoughtWithHint
-from dspy.knn import KNN
-from dspy.multi_chain_comparison import MultiChainComparison
-from dspy.predict import Predict
-from dspy.program_of_thought import ProgramOfThought
-from dspy.react import ReAct
-from dspy.retry import Retry
+"""Module for prediction algorithms used by DSPy programs."""

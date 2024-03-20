@@ -1,3 +1,5 @@
+"""Wrapper for interfacing with ColBERTv2 retrieval model."""
+
 import functools
 from typing import Any, Optional, Union
 
@@ -22,7 +24,10 @@ class ColBERTv2:
         self.url = f"{url}:{port}" if port else url
 
     def __call__(
-        self, query: str, k: int = 10, simplify: bool = False,
+        self,
+        query: str,
+        k: int = 10,
+        simplify: bool = False,
     ) -> Union[list[str], list[dotdict]]:
         if self.post_requests:
             topk: list[dict[str, Any]] = colbertv2_post_request(self.url, query, k)
@@ -46,6 +51,7 @@ def colbertv2_get_request_v2(url: str, query: str, k: int):
 
     topk = res.json()["topk"][:k]
     topk = [{**d, "long_text": d["text"]} for d in topk]
+
     return topk[:k]
 
 

@@ -1,33 +1,56 @@
-import dsp
-from dsp.modules.hf_client import ChatModuleClient, HFClientSGLang, HFClientVLLM, HFServerTGI
+"""Demonstrate-Search-Predicate: a Python framework for programming, not prompting, large language models."""
 
-from dspy.predict import *
+from dsp.modules.anthropic import Claude
+from dsp.modules.azure_openai import AzureOpenAI
+from dsp.modules.bedrock import Bedrock
+from dsp.modules.clarifai import ClarifaiLLM
+from dsp.modules.cohere import Cohere
+from dsp.modules.colbertv2 import ColBERTv2
+from dsp.modules.databricks import Databricks
+from dsp.modules.google import Google
+from dsp.modules.gpt3 import GPT3
+from dsp.modules.hf import HFModel
+from dsp.modules.hf_client import (
+    HFClientTGI,
+    HFClientVLLM,
+    HFServerTGI,
+    Together,
+    Anyscale,
+    ChatModuleClient,
+    HFClientSGLang,
+)
+
+from dsp.modules.ollama import OllamaLocal
+from dsp.modules.pyserini import PyseriniRetriever
+from dsp.modules.sbert import SentenceTransformersCrossEncoder
+from dsp.modules.sentence_vectorizer import (
+    BaseSentenceVectorizer,
+    SentenceTransformersVectorizer,
+    NaiveGetFieldVectorizer,
+    CohereVectorizer,
+    OpenAIVectorizer,
+)
+
+from dsp import utils
+
+from dspy.predict.aggregation import majority
+from dspy.predict.chain_of_thought import ChainOfThought
+from dspy.predict.chain_of_thought_with_hint import ChainOfThoughtWithHint
+from dspy.predict.knn import KNN
+from dspy.predict.multi_chain_comparison import MultiChainComparison
+from dspy.predict.predict import Predict
+from dspy.predict.program_of_thought import ProgramOfThought
+from dspy.predict.react import ReAct
+from dspy.predict.retry import Retry
+
 from dspy.primitives import *
 from dspy.retrieve import *
 from dspy.signatures import *
 
 # Functional must be imported after primitives, predict and signatures
-from dspy.functional import * # isort: skip
+from dspy.functional import *  # isort: skip
 
-settings = dsp.settings
 
-AzureOpenAI = dsp.AzureOpenAI
-OpenAI = dsp.GPT3
-Databricks = dsp.Databricks
-Cohere = dsp.Cohere
-ColBERTv2 = dsp.ColBERTv2
-Pyserini = dsp.PyseriniRetriever
-Clarifai = dsp.ClarifaiLLM
-Google = dsp.Google
-
-HFClientTGI = dsp.HFClientTGI
-HFClientVLLM = HFClientVLLM
-
-Anyscale = dsp.Anyscale
-Together = dsp.Together
-HFModel = dsp.HFModel
-OllamaLocal = dsp.OllamaLocal
-Bedrock = dsp.Bedrock
-
+settings = utils.settings
 configure = settings.configure
 context = settings.context

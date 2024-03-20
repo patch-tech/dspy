@@ -1,8 +1,9 @@
 class SentenceTransformersCrossEncoder:
-    """Wrapper for sentence-transformers cross-encoder model.
-    """
+    """Wrapper for sentence-transformers cross-encoder model."""
+
     def __init__(
-        self, model_name_or_path: str = "cross-encoder/ms-marco-MiniLM-L-12-v2",
+        self,
+        model_name_or_path: str = "cross-encoder/ms-marco-MiniLM-L-12-v2",
     ):
         try:
             from sentence_transformers.cross_encoder import CrossEncoder

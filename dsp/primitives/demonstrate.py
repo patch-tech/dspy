@@ -3,8 +3,15 @@ from typing import Any, Callable
 
 import numpy as np
 
-import dsp
-from dsp.utils import EM, F1, DPR_normalize, dotdict, has_answer, normalize_text
+from dsp.utils import (
+    EM,
+    F1,
+    DPR_normalize,
+    dotdict,
+    has_answer,
+    normalize_text,
+    settings,
+)
 
 
 class Example(dotdict):
@@ -53,7 +60,7 @@ def annotate(*transformations):
         ademos = []
 
         for example in train:  # tqdm.tqdm
-            raw_example = dsp.Example(example)
+            raw_example = Example(example)
 
             if (k is not None) and len(ademos) >= k:
                 example = None
@@ -81,8 +88,8 @@ def annotate(*transformations):
 
 def sample(train: list[Example], k: int):
     """Sample k examples from train."""
-    rng = random.Random(dsp.settings.branch_idx)
-    shuffled_train = [dsp.Example(example) for example in train]
+    rng = random.Random(settings.branch_idx)
+    shuffled_train = [Example(example) for example in train]
     rng.shuffle(shuffled_train)
 
     return shuffled_train[:k]
@@ -167,11 +174,13 @@ def knn(
 
     train_casted_to_vectorize = [cast(cur_elem) for cur_elem in train]
 
-    vectorizer: "BaseSentenceVectorizer" = dsp.settings.vectorizer
+    vectorizer: "BaseSentenceVectorizer" = settings.vectorizer
     all_vectors = vectorizer(train_casted_to_vectorize).astype(np.float32)
 
     index = create_faiss_index(
-        emb_dim=all_vectors.shape[1], n_objects=len(train), **knn_args,
+        emb_dim=all_vectors.shape[1],
+        n_objects=len(train),
+        **knn_args,
     )
     index.train(all_vectors)
     index.add(all_vectors)

@@ -1,6 +1,8 @@
 import random
 
-import dsp
+from dsp.primitives.demonstrate import Example
+from dsp.primitives.predict import generate
+from dsp.utils import settings
 from dspy.predict.parameter import Parameter
 from dspy.primitives.prediction import Prediction
 from dspy.signatures.signature import ensure_signature, signature_to_template
@@ -27,7 +29,9 @@ class Predict(Parameter):
         state["signature_instructions"] = self.signature.instructions
 
         *_, last_key = self.signature.fields.keys()
-        state["signature_prefix"] = self.signature.fields[last_key].json_schema_extra["prefix"]
+        state["signature_prefix"] = self.signature.fields[last_key].json_schema_extra[
+            "prefix"
+        ]
 
         return state
 
@@ -56,7 +60,7 @@ class Predict(Parameter):
         config = dict(**self.config, **kwargs.pop("config", {}))
 
         # Get the right LM to use.
-        lm = kwargs.pop("lm", self.lm) or dsp.settings.lm
+        lm = kwargs.pop("lm", self.lm) or settings.lm
         assert lm is not None, "No LM is loaded."
 
         # If temperature is 0.0 but its n > 1, set temperature to 0.7.
@@ -74,7 +78,7 @@ class Predict(Parameter):
         # All of the other kwargs are presumed to fit a prefix of the signature.
         # That is, they are input variables for the bottom most generation, so
         # we place them inside the input - x - together with the demos.
-        x = dsp.Example(demos=demos, **kwargs)
+        x = Example(demos=demos, **kwargs)
 
         if new_signature is not None:
             signature = new_signature
@@ -82,18 +86,20 @@ class Predict(Parameter):
         if not all(k in kwargs for k in signature.input_fields):
             present = [k for k in signature.input_fields if k in kwargs]
             missing = [k for k in signature.input_fields if k not in kwargs]
-            print(f"WARNING: Not all input fields were provided to module. Present: {present}. Missing: {missing}.")
+            print(
+                f"WARNING: Not all input fields were provided to module. Present: {present}. Missing: {missing}.",
+            )
 
         # Switch to legacy format for dsp.generate
         template = signature_to_template(signature)
 
         if self.lm is None:
-            x, C = dsp.generate(template, **config)(x, stage=self.stage)
+            x, C = generate(template, **config)(x, stage=self.stage)
         else:
             # Note: query_only=True means the instructions and examples are not included.
             # I'm not really sure why we'd want to do that, but it's there.
-            with dsp.settings.context(lm=self.lm, query_only=True):
-                x, C = dsp.generate(template, **config)(x, stage=self.stage)
+            with settings.context(lm=self.lm, query_only=True):
+                x, C = generate(template, **config)(x, stage=self.stage)
 
         assert self.stage in x, "The generated (input, output) example was not stored"
 
@@ -110,8 +116,8 @@ class Predict(Parameter):
 
         pred = Prediction.from_completions(completions, signature=signature)
 
-        if kwargs.pop("_trace", True) and dsp.settings.trace is not None:
-            trace = dsp.settings.trace
+        if kwargs.pop("_trace", True) and settings.trace is not None:
+            trace = settings.trace
             trace.append((self, {**kwargs}, pred))
 
         return pred

@@ -1,9 +1,11 @@
-import dsp
-import dspy
-from dspy.signatures.signature import ensure_signature
-
-from ..primitives.program import Module
-from .predict import Predict
+from dsp.primitives.demonstrate import Example
+from dsp.templates.utils import passages2text
+from dspy.predict.predict import Predict
+from dspy.primitives.prediction import Prediction
+from dspy.primitives.program import Module
+from dspy.retrieve.retrieve import Retrieve
+from dspy.signatures.field import OutputField
+from dspy.signatures.signature import Signature, ensure_signature
 
 # TODO: Simplify a lot.
 # TODO: Divide Action and Action Input like langchain does for ReAct.
@@ -15,7 +17,7 @@ class ReAct(Module):
         self.signature = signature = ensure_signature(signature)
         self.max_iters = max_iters
 
-        self.tools = tools or [dspy.Retrieve(k=num_results)]
+        self.tools = tools or [Retrieve(k=num_results)]
         self.tools = {tool.name: tool for tool in self.tools}
 
         self.input_fields = self.signature.input_fields
@@ -32,7 +34,7 @@ class ReAct(Module):
             "Thought can reason about the current situation, and Action can be the following types:\n",
         ]
 
-        self.tools["Finish"] = dspy.Example(
+        self.tools["Finish"] = Example(
             name="Finish",
             input_variable=outputs_.strip("`"),
             desc=f"returns the final {outputs_} and finishes the task",
@@ -46,7 +48,7 @@ class ReAct(Module):
 
         instr = "\n".join(instr)
         self.react = [
-            Predict(dspy.Signature(self._generate_signature(i), instr))
+            Predict(Signature(self._generate_signature(i), instr))
             for i in range(1, max_iters + 1)
         ]
 
@@ -56,7 +58,7 @@ class ReAct(Module):
             signature_dict[key] = val
 
         for j in range(1, iters + 1):
-            signature_dict[f"Thought_{j}"] = dspy.OutputField(
+            signature_dict[f"Thought_{j}"] = OutputField(
                 prefix=f"Thought {j}:",
                 desc="next steps to take based on last observation",
             )
@@ -68,16 +70,16 @@ class ReAct(Module):
                     if tool.name != "Finish"
                 ],
             )
-            signature_dict[f"Action_{j}"] = dspy.OutputField(
+            signature_dict[f"Action_{j}"] = OutputField(
                 prefix=f"Action {j}:",
                 desc=f"always either {tool_list} or, when done, Finish[answer]",
             )
 
             if j < iters:
-                signature_dict[f"Observation_{j}"] = dspy.OutputField(
+                signature_dict[f"Observation_{j}"] = OutputField(
                     prefix=f"Observation {j}:",
                     desc="observations based on action",
-                    format=dsp.passages2text,
+                    format=passages2text,
                 )
 
         return signature_dict
@@ -92,7 +94,9 @@ class ReAct(Module):
                 return action_val
 
             try:
-                output[f"Observation_{hop+1}"] = self.tools[action_name](action_val).passages
+                output[f"Observation_{hop+1}"] = self.tools[action_name](
+                    action_val,
+                ).passages
             except AttributeError:
                 # Handle the case where 'passages' attribute is missing
                 # TODO: This is a hacky way to handle this. Need to fix this.
@@ -116,4 +120,4 @@ class ReAct(Module):
             args.update(output)
 
         # assumes only 1 output field for now - TODO: handling for multiple output fields
-        return dspy.Prediction(**{list(self.output_fields.keys())[0]: action_val or ""})
+        return Prediction(**{list(self.output_fields.keys())[0]: action_val or ""})

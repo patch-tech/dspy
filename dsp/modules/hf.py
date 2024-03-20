@@ -1,3 +1,5 @@
+"""Wrapper for interacting with HuggingFace models."""
+
 # from peft import PeftConfig, PeftModel
 # from transformers import AutoModelForSeq2SeqLM, AutoModelForCausalLM, AutoTokenizer, AutoConfig
 import os
@@ -62,7 +64,12 @@ class HFModel(LM):
         if not self.is_client:
             try:
                 import torch
-                from transformers import AutoConfig, AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
+                from transformers import (
+                    AutoConfig,
+                    AutoModelForCausalLM,
+                    AutoModelForSeq2SeqLM,
+                    AutoTokenizer,
+                )
             except ImportError as exc:
                 raise ModuleNotFoundError(
                     "You need to install Hugging Face transformers library to use HF models.",
@@ -73,10 +80,12 @@ class HFModel(LM):
                     model,
                     **hf_autoconfig_kwargs,
                 ).__dict__["architectures"][0]
-                self.encoder_decoder_model = ("ConditionalGeneration" in architecture) or (
-                    "T5WithLMHeadModel" in architecture
+                self.encoder_decoder_model = (
+                    "ConditionalGeneration" in architecture
+                ) or ("T5WithLMHeadModel" in architecture)
+                self.decoder_only_model = ("CausalLM" in architecture) or (
+                    "GPT2LMHeadModel" in architecture
                 )
-                self.decoder_only_model = ("CausalLM" in architecture) or ("GPT2LMHeadModel" in architecture)
                 assert (
                     self.encoder_decoder_model or self.decoder_only_model
                 ), f"Unknown HuggingFace model class: {model}"
@@ -86,7 +95,11 @@ class HFModel(LM):
                 )
 
                 self.rationale = True
-                AutoModelClass = AutoModelForSeq2SeqLM if self.encoder_decoder_model else AutoModelForCausalLM
+                AutoModelClass = (
+                    AutoModelForSeq2SeqLM
+                    if self.encoder_decoder_model
+                    else AutoModelForCausalLM
+                )
                 if checkpoint:
                     # with open(os.path.join(checkpoint, '..', 'compiler_config.json'), 'r') as f:
                     #     config = json.load(f)
@@ -166,7 +179,10 @@ class HFModel(LM):
         if self.drop_prompt_from_output:
             input_length = inputs.input_ids.shape[1]
             outputs = outputs[:, input_length:]
-        completions = [{"text": c} for c in self.tokenizer.batch_decode(outputs, skip_special_tokens=True)]
+        completions = [
+            {"text": c}
+            for c in self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        ]
         response = {
             "prompt": prompt,
             "choices": completions,
