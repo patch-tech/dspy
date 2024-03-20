@@ -1,4 +1,1 @@
-from .template_v2 import *
-from .template_v3 import *
-from .utils import *
-
+"""Module for string templates for formatting passages, contexts and answers."""

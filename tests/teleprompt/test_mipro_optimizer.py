@@ -2,7 +2,7 @@ import textwrap
 import pytest
 import re
 import dspy
-from dsp.modules import LM
+from dsp.modules.lm import LM
 from dspy.teleprompt.signature_opt_bayesian import MIPRO
 from dspy.utils.dummies import DummyLM
 from dspy import Example
@@ -12,6 +12,7 @@ from dspy import Example
 def simple_metric(example, prediction, trace=None):
     # Simplified metric for testing: true if prediction matches expected output
     return example.output == prediction.output
+
 
 # Some example data
 capitals = {
@@ -34,7 +35,12 @@ trainset = [
     Example(
         input="What does the fox say?", output="Ring-ding-ding-ding-dingeringeding!"
     ).with_inputs("input"),
-] + [Example(input=f"What is the capital of {country}?", output=capital).with_inputs("input") for country, capital in capitals.items()]
+] + [
+    Example(input=f"What is the capital of {country}?", output=capital).with_inputs(
+        "input"
+    )
+    for country, capital in capitals.items()
+]
 
 
 class ConditionalLM(LM):
@@ -52,7 +58,9 @@ class ConditionalLM(LM):
         elif prompt.endswith("Summary:"):
             answer = " summarizing..."
         else:
-            pairs = re.findall(r"Input: (.*?)\n(?:Reasoning:.*?\n)?Output: (.*?)\n", prompt, re.DOTALL)
+            pairs = re.findall(
+                r"Input: (.*?)\n(?:Reasoning:.*?\n)?Output: (.*?)\n", prompt, re.DOTALL
+            )
 
             # breakpoint()
             print("PROMPT:", prompt)
@@ -73,10 +81,10 @@ class ConditionalLM(LM):
             # For other questions, the model will answer with the last word of the question.
             else:
                 answer = current_question.split()[-1]
-            
+
             answer = "think deeply.\nOutput: " + answer
 
-        RED, GREEN, RESET = '\033[91m', '\033[92m', '\033[0m'
+        RED, GREEN, RESET = "\033[91m", "\033[92m", "\033[0m"
         print("=== DummyLM ===")
         print(prompt, end="")
         print(f"{RED}{answer}{RESET}")
@@ -108,17 +116,25 @@ class ConditionalLM(LM):
 
     def get_convo(self, index):
         """get the prompt + anwer from the ith message"""
-        return self.history[index]['prompt'] \
-            + " " \
-            + self.history[index]['response']['choices'][0]['text']
+        return (
+            self.history[index]["prompt"]
+            + " "
+            + self.history[index]["response"]["choices"][0]["text"]
+        )
 
 
 def test_bayesian_signature_optimizer_initialization():
     optimizer = MIPRO(
-        metric=simple_metric, num_candidates=10, init_temperature=1.4, verbose=True, track_stats=True
+        metric=simple_metric,
+        num_candidates=10,
+        init_temperature=1.4,
+        verbose=True,
+        track_stats=True,
     )
     assert optimizer.metric == simple_metric, "Metric not correctly initialized"
-    assert optimizer.num_candidates == 10, "Incorrect 'num_candidates' parameter initialization"
+    assert (
+        optimizer.num_candidates == 10
+    ), "Incorrect 'num_candidates' parameter initialization"
     assert (
         optimizer.init_temperature == 1.4
     ), "Initial temperature not correctly initialized"

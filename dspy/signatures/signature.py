@@ -8,13 +8,13 @@ from typing import Any, Dict, Tuple, Type, Union  # noqa: UP035
 from pydantic import BaseModel, Field, create_model
 from pydantic.fields import FieldInfo
 
-import dsp
+from dsp.templates.template_v3 import Template
 from dspy.signatures.field import InputField, OutputField, new_to_old_field
 
 
-def signature_to_template(signature) -> dsp.Template:
+def signature_to_template(signature) -> Template:
     """Convert from new to legacy format."""
-    return dsp.Template(
+    return Template(
         signature.instructions,
         **{name: new_to_old_field(field) for name, field in signature.fields.items()},
     )

@@ -2,10 +2,9 @@ import re
 from collections import namedtuple
 from typing import Any, Union
 
-import dsp
 from dsp.primitives.demonstrate import Example
-
-from .utils import format_answers, passages2text
+from dsp.templates.utils import format_answers, passages2text
+from dsp.utils import settings
 
 Field = namedtuple("Field", "name separator input_variable output_variable description")
 
@@ -93,17 +92,26 @@ class TemplateV2:
                         break
 
         for field in self.fields:
-            if field.input_variable in example and example[field.input_variable] is not None:
+            if (
+                field.input_variable in example
+                and example[field.input_variable] is not None
+            ):
                 if field.input_variable in self.format_handlers:
                     format_handler = self.format_handlers[field.input_variable]
                 else:
 
                     def format_handler(x):
-                        assert type(x) == str, f"Need format_handler for {field.input_variable} of type {type(x)}"
+                        assert (
+                            type(x) == str
+                        ), f"Need format_handler for {field.input_variable} of type {type(x)}"
                         return " ".join(x.split())
 
                 formatted_value = format_handler(example[field.input_variable])
-                separator = "\n" if field.separator == " " and "\n" in formatted_value else field.separator
+                separator = (
+                    "\n"
+                    if field.separator == " " and "\n" in formatted_value
+                    else field.separator
+                )
 
                 result.append(
                     f"{field.name}{separator}{formatted_value}",
@@ -115,12 +123,14 @@ class TemplateV2:
 
     def guidelines(self, show_guidelines=True) -> str:
         """Returns the task guidelines as described in the lm prompt"""
-        if (not show_guidelines) or (hasattr(dsp.settings, "show_guidelines") and not dsp.settings.show_guidelines):
+        if (not show_guidelines) or (
+            hasattr(settings, "show_guidelines") and not settings.show_guidelines
+        ):
             return ""
 
         result = "Follow the following format.\n\n"
 
-        example = dsp.Example()
+        example = Example()
         for field in self.fields:
             example[field.input_variable] = field.description
         example.augmented = self._has_augmented_guidelines()
@@ -130,7 +140,8 @@ class TemplateV2:
 
     def _has_augmented_guidelines(self):
         return len(self.fields) > 3 or any(
-            ("\n" in field.separator) or ("\n" in field.description) for field in self.fields
+            ("\n" in field.separator) or ("\n" in field.description)
+            for field in self.fields
         )
 
     def extract(
@@ -147,13 +158,16 @@ class TemplateV2:
         Returns:
             Example: The example with the output variables filled in
         """
-        example = dsp.Example(example)
+        example = Example(example)
 
         raw_pred = raw_pred.strip()
 
         idx = 0
         while idx < len(self.fields):
-            if self.fields[idx].input_variable not in example or example[self.fields[idx].input_variable] is None:
+            if (
+                self.fields[idx].input_variable not in example
+                or example[self.fields[idx].input_variable] is None
+            ):
                 break
             idx += 1
 
@@ -167,16 +181,27 @@ class TemplateV2:
 
                 if offset >= 0:
                     if dspy.settings.release >= 20231003:
-                        example[self.fields[idx].output_variable] = raw_pred[:offset].strip().rstrip("---").strip()
-                        raw_pred = raw_pred[offset + len(next_field_name) :].strip().rstrip("---").strip()
+                        example[self.fields[idx].output_variable] = (
+                            raw_pred[:offset].strip().rstrip("---").strip()
+                        )
+                        raw_pred = (
+                            raw_pred[offset + len(next_field_name) :]
+                            .strip()
+                            .rstrip("---")
+                            .strip()
+                        )
                     else:
-                        example[self.fields[idx].output_variable] = raw_pred[:offset].strip()
+                        example[self.fields[idx].output_variable] = raw_pred[
+                            :offset
+                        ].strip()
                         raw_pred = raw_pred[offset + len(next_field_name) :].strip()
 
                     idx += 1
                 else:
                     if dspy.settings.release >= 20231003:
-                        example[self.fields[idx].output_variable] = raw_pred.strip().rstrip("---").strip()
+                        example[self.fields[idx].output_variable] = (
+                            raw_pred.strip().rstrip("---").strip()
+                        )
                     else:
                         example[self.fields[idx].output_variable] = raw_pred.strip()
 
@@ -188,7 +213,9 @@ class TemplateV2:
                 assert idx == len(self.fields) - 1, (idx, len(self.fields))
 
                 if dspy.settings.release >= 20231003:
-                    example[self.fields[idx].output_variable] = raw_pred.strip().rstrip("---").strip()
+                    example[self.fields[idx].output_variable] = (
+                        raw_pred.strip().rstrip("---").strip()
+                    )
                 else:
                     example[self.fields[idx].output_variable] = raw_pred.strip()
 
@@ -197,9 +224,9 @@ class TemplateV2:
         return example
 
     def __call__(self, example, show_guidelines=True) -> str:
-        example = dsp.Example(example)
+        example = Example(example)
 
-        if hasattr(dsp.settings, "query_only") and dsp.settings.query_only:
+        if hasattr(settings, "query_only") and settings.query_only:
             return self.query(example)
 
         # The training data should not contain the output variable
@@ -212,18 +239,27 @@ class TemplateV2:
             if (
                 (not demo.get("augmented", False))
                 and (  # validate that the training example has the same primitive input var as the template
-                    self.fields[-1].input_variable in demo and demo[self.fields[-1].input_variable] is not None
+                    self.fields[-1].input_variable in demo
+                    and demo[self.fields[-1].input_variable] is not None
                 )
             )
         ]
 
-        ademos = [self.query(demo, is_demo=True) for demo in example.demos if demo.get("augmented", False)]
+        ademos = [
+            self.query(demo, is_demo=True)
+            for demo in example.demos
+            if demo.get("augmented", False)
+        ]
 
         # Move the rdemos to ademos if rdemo has all the fields filled in
         rdemos_ = []
         new_ademos = []
         for rdemo in rdemos:
-            if all((field.name in rdemo) for field in self.fields if field.input_variable in example):
+            if all(
+                (field.name in rdemo)
+                for field in self.fields
+                if field.input_variable in example
+            ):
                 import dspy
 
                 if dspy.settings.release >= 20230928:

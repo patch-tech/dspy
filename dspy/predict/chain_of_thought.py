@@ -2,7 +2,7 @@
 
 from dsp.modules.gpt3 import GPT3
 from dsp.utils import settings
-from dspy.predict import Predict
+from dspy.predict.predict import Predict
 from dspy.signatures.field import OutputField
 from dspy.signatures.signature import ensure_signature
 

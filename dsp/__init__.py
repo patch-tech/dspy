@@ -1,10 +1,3 @@
-from dsp.modules.anthropic import Claude
-from dsp.modules.azure_openai import AzureOpenAI
-from dsp.modules.bedrock import *
-from dsp.primitives import *
-from dsp.templates import *
-from dsp.utils import settings
-
 """
 TODO:
 
@@ -17,7 +10,6 @@ with the syntax `dsp.<setting_name>` instead of the longer `dsp.dsp_settings.<se
 for more concise and intuitive code. However, due to its unconventional nature, developers should be 
 careful when modifying this module to ensure they maintain the expected behavior and access patterns.
 """
-
 
 """
 

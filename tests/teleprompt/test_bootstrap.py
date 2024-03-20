@@ -1,8 +1,8 @@
 import pytest
 import dspy
-from dspy.predict import Predict
+from dspy.predict.predict import Predict
 from dspy.utils.dummies import DummyLM
-from dspy import Example
+from dspy.primitives.example import Example
 from dspy.teleprompt import BootstrapFewShot
 import textwrap
 

@@ -1,6 +1,7 @@
 from typing import Callable
 
-from dsp.templates import Field, TemplateV2, format_answers, passages2text
+from dsp.templates.template_v2 import Field, TemplateV2
+from dsp.templates.utils import format_answers, passages2text
 
 
 class Type:
@@ -36,7 +37,9 @@ class Template(TemplateV2):
         for key, value in kwargs.items():
             prefix: str = value.prefix
             separator: str = (
-                " " if prefix.rstrip() == prefix and len(prefix) > 0 else prefix[len(prefix.rstrip()) :]
+                " "
+                if prefix.rstrip() == prefix and len(prefix) > 0
+                else prefix[len(prefix.rstrip()) :]
             )
             field = Field(
                 name=prefix.strip(),
@@ -49,12 +52,11 @@ class Template(TemplateV2):
 
             if value.format:
                 self.format_handlers[key] = value.format
-        
-    
+
     # equality
     def __eq__(self, other):
         if set(self.kwargs.keys()) != set(other.kwargs.keys()):
-            print('here2')
+            print("here2")
             return False
 
         for k in self.kwargs.keys():
@@ -62,7 +64,6 @@ class Template(TemplateV2):
             if not v1 == v2:
                 print(k, v1, v2)
 
-            
         # print("here?", self.instructions == other.instructions, self.kwargs == other.kwargs)
         return self.instructions == other.instructions and self.kwargs == other.kwargs
 
@@ -71,4 +72,3 @@ class Template(TemplateV2):
         field_names = [field.name for field in self.fields]
 
         return f"Template({self.instructions}, {field_names})"
-    

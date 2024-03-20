@@ -4,14 +4,16 @@ from typing import Union
 
 import numpy as np
 
-from dsp.modules import LM
+from dsp.modules.lm import LM
 from dsp.utils.utils import dotdict
 
 
 class DummyLM(LM):
     """Dummy language model for unit testing purposes."""
 
-    def __init__(self, answers: Union[list[str], dict[str, str]], follow_examples: bool = False):
+    def __init__(
+        self, answers: Union[list[str], dict[str, str]], follow_examples: bool = False
+    ):
         """Initializes the dummy language model.
 
         Parameters:
@@ -41,13 +43,17 @@ class DummyLM(LM):
                     # We take the last answer, as the first one is just from
                     # the "Follow the following format" section.
                     answer = possible_answers[-1]
-                    print(f"DummyLM got found previous example for {prefix} with value {answer=}")
+                    print(
+                        f"DummyLM got found previous example for {prefix} with value {answer=}"
+                    )
                 else:
                     print(f"DummyLM couldn't find previous example for {prefix=}")
 
             if answer is None:
                 if isinstance(self.answers, dict):
-                    answer = next((v for k, v in self.answers.items() if k in prompt), None)
+                    answer = next(
+                        (v for k, v in self.answers.items() if k in prompt), None
+                    )
                 else:
                     if len(self.answers) > 0:
                         answer = self.answers[0]
@@ -91,7 +97,11 @@ class DummyLM(LM):
 
     def get_convo(self, index) -> str:
         """Get the prompt + anwer from the ith message."""
-        return self.history[index]["prompt"] + " " + self.history[index]["response"]["choices"][0]["text"]
+        return (
+            self.history[index]["prompt"]
+            + " "
+            + self.history[index]["response"]["choices"][0]["text"]
+        )
 
 
 def dummy_rm(passages=()) -> callable:
@@ -137,7 +147,9 @@ class DummyVectorizer:
     def __call__(self, texts: list[str]) -> np.ndarray:
         vecs = []
         for text in texts:
-            grams = [text[i : i + self.n_gram] for i in range(len(text) - self.n_gram + 1)]
+            grams = [
+                text[i : i + self.n_gram] for i in range(len(text) - self.n_gram + 1)
+            ]
             vec = [0] * self.max_length
             for gram in grams:
                 vec[self._hash(gram)] += 1
@@ -145,5 +157,7 @@ class DummyVectorizer:
 
         vecs = np.array(vecs, dtype=np.float32)
         vecs -= np.mean(vecs, axis=1, keepdims=True)
-        vecs /= np.linalg.norm(vecs, axis=1, keepdims=True) + 1e-10  # Added epsilon to avoid division by zero
+        vecs /= (
+            np.linalg.norm(vecs, axis=1, keepdims=True) + 1e-10
+        )  # Added epsilon to avoid division by zero
         return vecs

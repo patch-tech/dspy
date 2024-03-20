@@ -1,9 +1,8 @@
 import copy
 
-import dsp
-import dspy
-
-from .predict import Predict
+from dsp.utils import settings
+from dspy.predict.predict import Predict
+from dspy.signatures.field import InputField
 
 
 class Retry(Predict):
@@ -17,17 +16,23 @@ class Retry(Predict):
     def _create_new_signature(self, signature):
         # Add "Past" input fields for each output field
         for key, value in signature.output_fields.items():
-            signature = signature.append(f"past_{key}", dspy.InputField(
-                prefix="Past " + value.json_schema_extra["prefix"],
-                desc="past output with errors",
-                format=value.json_schema_extra.get("format"),
-            ))
+            signature = signature.append(
+                f"past_{key}",
+                InputField(
+                    prefix="Past " + value.json_schema_extra["prefix"],
+                    desc="past output with errors",
+                    format=value.json_schema_extra.get("format"),
+                ),
+            )
 
-        signature = signature.append("feedback", dspy.InputField(
-            prefix="Instructions:",
-            desc="Some instructions you must satisfy",
-            format=str,
-        ))
+        signature = signature.append(
+            "feedback",
+            InputField(
+                prefix="Instructions:",
+                desc="Some instructions you must satisfy",
+                format=str,
+            ),
+        )
 
         return signature
 
@@ -42,15 +47,15 @@ class Retry(Predict):
         # Note: This only works if the wrapped module is a Predict or ChainOfThought.
         kwargs["new_signature"] = self.new_signature
         return self.original_forward(**kwargs)
-    
+
     def __call__(self, **kwargs):
         cached_kwargs = copy.deepcopy(kwargs)
         kwargs["_trace"] = False
         kwargs.setdefault("demos", self.demos if self.demos is not None else [])
 
         # perform backtracking
-        if dspy.settings.backtrack_to == self:
-            for key, value in dspy.settings.backtrack_to_args.items():
+        if settings.backtrack_to == self:
+            for key, value in settings.backtrack_to_args.items():
                 kwargs.setdefault(key, value)
             pred = self.forward(**kwargs)
         else:
@@ -62,7 +67,7 @@ class Retry(Predict):
         for key in ["_trace", "demos", "signature", "config", "lm", "past_outputs"]:
             kwargs.pop(key, None)
 
-        if dsp.settings.trace is not None:
-            trace = dsp.settings.trace
+        if settings.trace is not None:
+            trace = settings.trace
             trace.append((self, {**kwargs}, pred))
         return pred

@@ -1,14 +1,14 @@
 import types
 from typing import List
 
-import dsp
+from dsp.primitives.demonstrate import Example
 from dspy.teleprompt import BootstrapFewShot
 
 from .teleprompt import Teleprompter
 
 
 class KNNFewShot(Teleprompter):
-    def __init__(self, KNN, k: int, trainset: List[dsp.Example]):
+    def __init__(self, KNN, k: int, trainset: List[Example]):
         self.KNN = KNN(k, trainset)
 
     def compile(self, student, *, teacher=None, trainset, valset=None):

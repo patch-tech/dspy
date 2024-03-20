@@ -1,5 +1,6 @@
 """Demonstrate-Search-Predicate: a Python framework for programming, not prompting, large language models."""
 
+from dsp import utils as dsp_utils
 from dsp.modules.anthropic import Claude
 from dsp.modules.azure_openai import AzureOpenAI
 from dsp.modules.bedrock import Bedrock
@@ -11,28 +12,24 @@ from dsp.modules.google import Google
 from dsp.modules.gpt3 import GPT3
 from dsp.modules.hf import HFModel
 from dsp.modules.hf_client import (
+    Anyscale,
+    ChatModuleClient,
+    HFClientSGLang,
     HFClientTGI,
     HFClientVLLM,
     HFServerTGI,
     Together,
-    Anyscale,
-    ChatModuleClient,
-    HFClientSGLang,
 )
-
 from dsp.modules.ollama import OllamaLocal
 from dsp.modules.pyserini import PyseriniRetriever
 from dsp.modules.sbert import SentenceTransformersCrossEncoder
 from dsp.modules.sentence_vectorizer import (
     BaseSentenceVectorizer,
-    SentenceTransformersVectorizer,
-    NaiveGetFieldVectorizer,
     CohereVectorizer,
+    NaiveGetFieldVectorizer,
     OpenAIVectorizer,
+    SentenceTransformersVectorizer,
 )
-
-from dsp import utils
-
 from dspy.predict.aggregation import majority
 from dspy.predict.chain_of_thought import ChainOfThought
 from dspy.predict.chain_of_thought_with_hint import ChainOfThoughtWithHint
@@ -42,7 +39,6 @@ from dspy.predict.predict import Predict
 from dspy.predict.program_of_thought import ProgramOfThought
 from dspy.predict.react import ReAct
 from dspy.predict.retry import Retry
-
 from dspy.primitives import *
 from dspy.retrieve import *
 from dspy.signatures import *
@@ -51,6 +47,6 @@ from dspy.signatures import *
 from dspy.functional import *  # isort: skip
 
 
-settings = utils.settings
+settings = dsp_utils.settings
 configure = settings.configure
 context = settings.context

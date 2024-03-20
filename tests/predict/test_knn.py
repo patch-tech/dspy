@@ -2,12 +2,14 @@ import pytest
 import numpy as np
 import dsp, dspy
 from dspy.utils import DummyVectorizer
-from dspy.predict import KNN
+from dspy.predict.knn import KNN
+from dspy.primitives.example import Example as DspyExample
+from dsp.primitives.demonstrate import Example
 
 
-def mock_example(question: str, answer: str) -> dsp.Example:
+def mock_example(question: str, answer: str) -> Example:
     """Creates a mock DSP example with specified question and answer."""
-    return dspy.Example(question=question, answer=answer).with_inputs("question")
+    return DspyExample(question=question, answer=answer).with_inputs("question")
 
 
 @pytest.fixture
