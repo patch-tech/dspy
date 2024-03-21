@@ -23,11 +23,20 @@ def make_info(signature: type[Signature]) -> BaseModel:
     """
     # First, create the SignatureInfo type
     fields = {
-        "instructions": (str, pydantic.Field(description="The instructions for the task")),
+        "instructions": (
+            str,
+            pydantic.Field(description="The instructions for the task"),
+        ),
     }
     for name in signature.fields:
-        fields[name + "_prefix"] = (str, pydantic.Field(description=f"The prefix for {name}"))
-        fields[name + "_desc"] = (str, pydantic.Field(description=f"The description for {name}"))
+        fields[name + "_prefix"] = (
+            str,
+            pydantic.Field(description=f"The prefix for {name}"),
+        )
+        fields[name + "_desc"] = (
+            str,
+            pydantic.Field(description=f"The description for {name}"),
+        )
     SignatureInfo = pydantic.create_model(  # noqa: N806
         f"SignatureInfo[{signature.__name__}]",
         **fields,
@@ -66,7 +75,8 @@ def make_initial_signature(n_prompts: int) -> type[Signature]:
 
     class GenerateInstructionInitial(Signature, Generic[T]):
         # TODO: Can we make textwrap default/automatic in all signatures?
-        __doc__ = textwrap.dedent("""\
+        __doc__ = textwrap.dedent(
+            """\
         You are a creative instruction optimizer for large language models.
 
         I will give you a ``signature`` of fields (inputs and outputs) in English.
@@ -88,13 +98,14 @@ def make_initial_signature(n_prompts: int) -> type[Signature]:
         - This will be fun!
         - Take a deep breath and think carefully.
         - I really need your help!
-        """)
+        """
+        )
 
         basic_signature: T = InputField()
         proposed_signatures: list[T] = OutputField(
             desc=f"A list of {n_prompts} very different variations of the basic signature",
-            min_items=n_prompts,
-            max_items=n_prompts,
+            min_length=n_prompts,
+            max_length=n_prompts,
         )
 
     return GenerateInstructionInitial
@@ -102,7 +113,8 @@ def make_initial_signature(n_prompts: int) -> type[Signature]:
 
 def generate_with_avoidance(signatures_to_avoid: list[BaseModel]) -> type[Signature]:
     class GenerateSignature(dspy.Signature, Generic[T]):
-        __doc__ = textwrap.dedent("""\
+        __doc__ = textwrap.dedent(
+            """\
         You are an instruction optimizer for large language models.
 
         I will give some task instructions I've tried, along with their corresponding validation scores.
@@ -110,10 +122,15 @@ def generate_with_avoidance(signatures_to_avoid: list[BaseModel]) -> type[Signat
         - Your task is to propose a new instruction that will lead a good language model to perform the task even better.
         - Be creative, and think out of the box.
         - Don't repeat instructions, descriptions and prefixes that have already been attempted.
-        """)
+        """
+        )
 
-        analysis: str = OutputField(desc="Consider what made the previous instructions good or bad.")
-        proposed_signature: T = OutputField(desc="A signature that will likely lead to a high score.")
+        analysis: str = OutputField(
+            desc="Consider what made the previous instructions good or bad."
+        )
+        proposed_signature: T = OutputField(
+            desc="A signature that will likely lead to a high score."
+        )
         score: float = OutputField(
             desc="The expected score for the new signature. Don't write anything after this number.",
         )
@@ -191,7 +208,8 @@ def optimize_signature(
     named_predictors = [
         (name, module)
         for name, module in module.named_sub_modules()
-        if isinstance(module, TypedPredictor) and not getattr(module, "_compiled", False)
+        if isinstance(module, TypedPredictor)
+        and not getattr(module, "_compiled", False)
     ]
     if not named_predictors:
         raise ValueError("No unfrozen/uncompiled TypedPredictors found in the module.")
@@ -211,12 +229,16 @@ def optimize_signature(
         for name, _p in named_predictors:
             if verbose:
                 print(f"Generating {initial_prompts} initial signatures for {name}...")
-            info = candidates[name][0]  # Use initial info, to make sure types are identical
+            info = candidates[name][
+                0
+            ]  # Use initial info, to make sure types are identical
             generator = TypedChainOfThought(MyGenerateInstructionInitial[type(info)])
             candidates[name] += generator(
                 basic_signature=info,
             ).proposed_signatures
-            assert len(candidates[name]) == initial_prompts + 1  # Basic signature + initial prompts
+            assert (
+                len(candidates[name]) == initial_prompts + 1
+            )  # Basic signature + initial prompts
 
     # Main loop of scoring + generating new candidates
     for i in range(n_iterations):
@@ -246,7 +268,10 @@ def optimize_signature(
             for name, _p in named_predictors:
                 SignatureInfo = type(candidates[name][0])  # noqa: N806
 
-                demos = [dspy.Example(proposed_signature=info, score=sc) for info, sc in zip(candidates[name], scores)]
+                demos = [
+                    dspy.Example(proposed_signature=info, score=sc)
+                    for info, sc in zip(candidates[name], scores)
+                ]
                 if sorted_order == "chronological":
                     demos = demos[-max_examples:]
                 elif sorted_order == "increasing":
@@ -260,7 +285,9 @@ def optimize_signature(
 
                 # We can only tell the LM to avoid the signatures we are actually giving it as demos.
                 avoid = [ex.proposed_signature for ex in demos]
-                generator = TypedPredictor(generate_with_avoidance(avoid)[SignatureInfo])
+                generator = TypedPredictor(
+                    generate_with_avoidance(avoid)[SignatureInfo]
+                )
                 generator.predictor.demos = demos
 
                 if verbose:
@@ -281,6 +308,9 @@ def optimize_signature(
 
     return OptimizerResult(
         program=module,
-        signatures=[{name: sigs[i].to_signature() for name, sigs in candidates.items()} for i in range(n_iterations)],
+        signatures=[
+            {name: sigs[i].to_signature() for name, sigs in candidates.items()}
+            for i in range(n_iterations)
+        ],
         scores=scores,
     )

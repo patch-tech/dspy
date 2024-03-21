@@ -8,7 +8,13 @@ from typing import List
 import pytest
 
 import dspy
-from dspy.functional import predictor, cot, FunctionalModule, TypedPredictor, TypedChainOfThought
+from dspy.functional import (
+    predictor,
+    cot,
+    FunctionalModule,
+    TypedPredictor,
+    TypedChainOfThought,
+)
 from dspy.predict.predict import Predict
 from dspy.primitives.example import Example
 from dspy.teleprompt.bootstrap import BootstrapFewShot
@@ -37,7 +43,9 @@ def test_list_output():
         pass
 
     expected = ["What is the speed of light?", "What is the speed of sound?"]
-    lm = DummyLM(['{"value": ["What is the speed of light?", "What is the speed of sound?"]}'])
+    lm = DummyLM(
+        ['{"value": ["What is the speed of light?", "What is the speed of sound?"]}']
+    )
     dspy.settings.configure(lm=lm)
 
     question = hard_questions(topics=["Physics", "Music"])
@@ -88,7 +96,9 @@ def test_simple_class():
     class Answer(pydantic.BaseModel):
         value: float
         certainty: float
-        comments: List[str] = pydantic.Field(description="At least two comments about the answer")
+        comments: List[str] = pydantic.Field(
+            description="At least two comments about the answer"
+        )
 
     class QA(FunctionalModule):
         @predictor
@@ -227,7 +237,9 @@ def test_bootstrap_effectiveness():
     lm = DummyLM(["blue", "Ring-ding-ding-ding-dingeringeding!"], follow_examples=True)
     dspy.settings.configure(lm=lm, trace=[])
 
-    bootstrap = BootstrapFewShot(metric=simple_metric, max_bootstrapped_demos=1, max_labeled_demos=1)
+    bootstrap = BootstrapFewShot(
+        metric=simple_metric, max_bootstrapped_demos=1, max_labeled_demos=1
+    )
     compiled_student = bootstrap.compile(student, teacher=teacher, trainset=trainset)
 
     lm.inspect_history(n=2)
@@ -432,7 +444,9 @@ def test_field_validator():
 
 def test_annotated_field():
     @predictor
-    def test(input: Annotated[str, Field(description="description")]) -> Annotated[float, Field(gt=0, lt=1)]:
+    def test(
+        input: Annotated[str, Field(description="description")]
+    ) -> Annotated[float, Field(gt=0, lt=1)]:
         pass
 
     # First try 0, which fails, then try 0.5, which passes
@@ -559,7 +573,9 @@ def test_synthetic_data_gen():
     examples = generator(config=dict(n=3))
     for ex in examples.completions.fact:
         assert isinstance(ex, SyntheticFact)
-    assert examples.completions.fact[0] == SyntheticFact(fact="The sky is blue", varacity=True)
+    assert examples.completions.fact[0] == SyntheticFact(
+        fact="The sky is blue", varacity=True
+    )
 
     # If you have examples and want more
     existing_examples = [
@@ -601,7 +617,8 @@ def test_list_input2():
 
     assert output == "Output"
 
-    assert lm.get_convo(-1) == textwrap.dedent("""\
+    assert lm.get_convo(-1) == textwrap.dedent(
+        """\
         Given the fields `attempted_signatures`, produce the fields `proposed_signature`.
 
         ---
@@ -616,7 +633,8 @@ def test_list_input2():
 
         Attempted Signatures: [{"string":"string 1","score":0.5},{"string":"string 2","score":0.4},{"string":"string 3","score":0.3}]
         Reasoning: Let's think step by step in order to Thoughts
-        Proposed Signature: Output""")
+        Proposed Signature: Output"""
+    )
 
 
 def test_generic_signature():
@@ -730,7 +748,8 @@ def test_demos():
 
     assert program(input="What is the capital of France?").output == "Paris"
 
-    assert lm.get_convo(-1) == textwrap.dedent("""\
+    assert lm.get_convo(-1) == textwrap.dedent(
+        """\
         Given the fields `input`, produce the fields `output`.
 
         ---
@@ -748,7 +767,8 @@ def test_demos():
         ---
 
         Input: What is the capital of France?
-        Output: Paris""")
+        Output: Paris"""
+    )
 
 
 def _test_demos_missing_input():
@@ -760,7 +780,8 @@ def _test_demos_missing_input():
     dspy.settings.configure(lm=DummyLM(["My thoughts", "Paris"]))
     assert program(input="What is the capital of France?").output == "Paris"
 
-    assert dspy.settings.lm.get_convo(-1) == textwrap.dedent("""\
+    assert dspy.settings.lm.get_convo(-1) == textwrap.dedent(
+        """\
         Given the fields `input`, produce the fields `output`.
 
         ---
@@ -780,16 +801,24 @@ def _test_demos_missing_input():
 
         Input: What is the capital of France?
         Thoughts: My thoughts
-        Output: Paris""")
+        Output: Paris"""
+    )
 
 
 def test_conlist():
     dspy.settings.configure(
-        lm=DummyLM(['{"value": []}', '{"value": [1]}', '{"value": [1, 2]}', '{"value": [1, 2, 3]}'])
+        lm=DummyLM(
+            [
+                '{"value": []}',
+                '{"value": [1]}',
+                '{"value": [1, 2]}',
+                '{"value": [1, 2, 3]}',
+            ]
+        )
     )
 
     @predictor
-    def make_numbers(input: str) -> Annotated[list[int], Field(min_items=2)]:
+    def make_numbers(input: str) -> Annotated[list[int], Field(min_length=2)]:
         pass
 
     assert make_numbers(input="What are the first two numbers?") == [1, 2]
@@ -797,8 +826,17 @@ def test_conlist():
 
 def test_conlist2():
     dspy.settings.configure(
-        lm=DummyLM(['{"value": []}', '{"value": [1]}', '{"value": [1, 2]}', '{"value": [1, 2, 3]}'])
+        lm=DummyLM(
+            [
+                '{"value": []}',
+                '{"value": [1]}',
+                '{"value": [1, 2]}',
+                '{"value": [1, 2, 3]}',
+            ]
+        )
     )
 
-    make_numbers = TypedPredictor("input:str -> output:Annotated[List[int], Field(min_items=2)]")
+    make_numbers = TypedPredictor(
+        "input:str -> output:Annotated[List[int], Field(min_length=2)]"
+    )
     assert make_numbers(input="What are the first two numbers?").output == [1, 2]
