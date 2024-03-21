@@ -1,7 +1,7 @@
 import types
 from typing import List
 
-from dsp.primitives.demonstrate import Example
+from dspy.primitives.example import Example
 from dspy.teleprompt import BootstrapFewShot
 
 from .teleprompt import Teleprompter

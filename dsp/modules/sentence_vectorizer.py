@@ -4,6 +4,8 @@ from typing import List, Optional
 import numpy as np
 import openai
 
+from dspy.primitives.example import Example
+
 
 class BaseSentenceVectorizer(abc.ABC):
     """
@@ -20,7 +22,7 @@ class BaseSentenceVectorizer(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def __call__(self, inp_examples: List["Example"]) -> np.ndarray:
+    def __call__(self, inp_examples: list[Example]) -> np.ndarray:
         pass
 
     def _extract_text_from_examples(self, inp_examples: List) -> List[str]:

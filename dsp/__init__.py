@@ -1,7 +1,10 @@
-"""
-TODO:
+from dsp.primitives import predict
+from dsp.primitives.search import retrieveEnsemble
+from dsp.utils import settings
 
-The DspModule class serves as a proxy to our original 'dsp' module. It provides direct access to settings 
+"""The DspModule class serves as a proxy to our original 'dsp' module.
+
+It provides direct access to settings 
 stored in `dsp_settings` as if they were top-level attributes of the 'dsp' module, while also ensuring that
 all other regular attributes (like functions, classes, or submodules) of the 'dsp' module remain accessible.
 

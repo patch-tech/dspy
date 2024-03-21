@@ -39,6 +39,8 @@ from dspy.predict.predict import Predict
 from dspy.predict.program_of_thought import ProgramOfThought
 from dspy.predict.react import ReAct
 from dspy.predict.retry import Retry
+
+from dspy.predict import retry
 from dspy.primitives import *
 from dspy.retrieve import *
 from dspy.signatures import *

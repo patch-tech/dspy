@@ -3,7 +3,7 @@ import dsp, dspy
 from dspy.predict.knn import KNN
 from dspy.teleprompt.knn_fewshot import KNNFewShot
 from dspy.utils.dummies import DummyLM, DummyVectorizer
-from dsp.primitives.demonstrate import Example
+from dspy.primitives.example import Example
 
 
 def mock_example(question: str, answer: str) -> Example:

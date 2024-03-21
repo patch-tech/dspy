@@ -119,6 +119,8 @@ pytest-mock = "^3.12.0"
 ruff = "^0.3.0"
 black = "^24.2.0"
 ruff-lsp = "^0.0.53"
+sentence-transformers = "^2.5.1"
+faiss = { path = "../faiss/build/faiss/python", develop = true }
 
 [tool.poetry.extras]
 chromadb = ["chromadb"]

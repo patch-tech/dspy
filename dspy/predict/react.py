@@ -1,6 +1,6 @@
-from dsp.primitives.demonstrate import Example
 from dsp.templates.utils import passages2text
 from dspy.predict.predict import Predict
+from dspy.primitives.example import Example
 from dspy.primitives.prediction import Prediction
 from dspy.primitives.program import Module
 from dspy.retrieve.retrieve import Retrieve
