@@ -5,7 +5,6 @@ A generalized AWS LLM.
 from __future__ import annotations
 
 import json
-import logging
 from abc import abstractmethod
 from typing import Any, Literal, Optional
 
@@ -60,7 +59,8 @@ class AWSLM(LM):
             self.predictor = boto3.client(service_name, region_name=region_name)
         else:
             self.predictor = boto3.Session(profile_name=profile_name).client(
-                service_name, region_name=region_name,
+                service_name,
+                region_name=region_name,
             )
 
     @abstractmethod
@@ -88,7 +88,8 @@ class AWSLM(LM):
 
     @abstractmethod
     def _extract_input_parameters(
-        self, body: dict[Any, Any],
+        self,
+        body: dict[Any, Any],
     ) -> dict[str, str | float | int]:
         pass
 
@@ -120,14 +121,16 @@ class AWSLM(LM):
         if "n" in kwargs.keys():
             if self._batch_n:
                 llm_out = self._simple_api_call(
-                    formatted_prompt=formatted_prompt, **kwargs,
+                    formatted_prompt=formatted_prompt,
+                    **kwargs,
                 )
             else:
                 del kwargs["n"]
                 llm_out = []
                 for _ in range(0, kwargs["n"]):
                     generated: str | list[str] = self._simple_api_call(
-                        formatted_prompt=formatted_prompt, **kwargs,
+                        formatted_prompt=formatted_prompt,
+                        **kwargs,
                     )
                     if isinstance(generated, str):
                         llm_out.append(generated)
@@ -154,8 +157,6 @@ class AWSLM(LM):
         """Reformat inputs such that they do not overflow context size limitation."""
         token_count = self._estimate_tokens(input_text)
         if token_count > self.kwargs["max_tokens"]:
-            logging.info("Excessive prompt found in llm input")
-            logging.info("Truncating texts to avoid error")
             max_chars: int = CHARS2TOKENS * max_input_tokens
             truncated_text: str
             if remove_beginning_or_ending == "ending":

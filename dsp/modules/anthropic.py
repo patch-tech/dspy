@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import Any, Optional
 
@@ -8,12 +7,11 @@ from dsp.modules.lm import LM
 
 try:
     import anthropic
+
     anthropic_rate_limit = anthropic.RateLimitError
 except ImportError:
     anthropic_rate_limit = Exception
 
-
-logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.anthropic.com/v1/messages"
 
@@ -36,12 +34,13 @@ def giveup_hdlr(details):
 
 class Claude(LM):
     """Wrapper around anthropic's API. Supports both the Anthropic and Azure APIs."""
+
     def __init__(
-            self,
-            model: str = "claude-instant-1.2",
-            api_key: Optional[str] = None,
-            api_base: Optional[str] = None,
-            **kwargs,
+        self,
+        model: str = "claude-instant-1.2",
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        **kwargs,
     ):
         super().__init__(model)
 
@@ -51,7 +50,9 @@ class Claude(LM):
             raise ImportError("Claude requires `pip install anthropic`.") from err
 
         self.provider = "anthropic"
-        self.api_key = api_key = os.environ.get("ANTHROPIC_API_KEY") if api_key is None else api_key
+        self.api_key = api_key = (
+            os.environ.get("ANTHROPIC_API_KEY") if api_key is None else api_key
+        )
         self.api_base = BASE_URL if api_base is None else api_base
 
         self.kwargs = {
@@ -71,7 +72,6 @@ class Claude(LM):
         usage_data = response.usage
         if usage_data:
             total_tokens = usage_data.input_tokens + usage_data.output_tokens
-            logger.info(f'{total_tokens}')
 
     def basic_request(self, prompt: str, **kwargs):
         raw_kwargs = kwargs
@@ -118,7 +118,6 @@ class Claude(LM):
 
         assert only_completed, "for now"
         assert return_sorted is False, "for now"
-
 
         # per eg here: https://docs.anthropic.com/claude/reference/messages-examples
         # max tokens can be used as a proxy to return smaller responses

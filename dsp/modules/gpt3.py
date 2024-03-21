@@ -1,4 +1,3 @@
-import logging
 import functools
 import json
 from typing import Any, Literal, Optional, cast
@@ -10,13 +9,6 @@ import dsp
 from dsp.modules.cache_utils import CacheMemory, NotebookCacheMemory, cache_turn_on
 from dsp.modules.lm import LM
 
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s",
-    handlers=[logging.FileHandler("openai_usage.log")],
-)
 
 try:
     OPENAI_LEGACY = int(openai.version.__version__[0]) == 0
@@ -111,7 +103,6 @@ class GPT3(LM):
         usage_data = response.get("usage")
         if usage_data:
             total_tokens = usage_data.get("total_tokens")
-            logging.info(f"{total_tokens}")
 
     def basic_request(self, prompt: str, **kwargs):
         raw_kwargs = kwargs

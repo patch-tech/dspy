@@ -2,7 +2,6 @@
 
 import functools
 import json
-import logging
 from typing import Literal, Optional
 
 import openai
@@ -10,14 +9,6 @@ import openai
 from dsp.modules.cache_utils import CacheMemory, NotebookCacheMemory, cache_turn_on
 from dsp.modules.gpt3 import GPT3
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s",
-    handlers=[
-        logging.FileHandler("openai_usage.log"),
-    ],
-)
 
 try:
     import openai.error
