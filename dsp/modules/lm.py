@@ -22,6 +22,10 @@ class LM(ABC):
     def basic_request(self, prompt, **kwargs):
         pass
 
+    @abstractmethod
+    def __call__(self, prompt, only_completed=True, return_sorted=False, **kwargs):
+        pass
+
     def request(self, prompt, **kwargs):
         return self.basic_request(prompt, **kwargs)
 
@@ -46,20 +50,26 @@ class LM(ABC):
 
             if prompt != last_prompt:
 
-                if provider == "clarifai" or provider == "google" or provider == "claude":
+                if (
+                    provider == "clarifai"
+                    or provider == "google"
+                    or provider == "claude"
+                ):
                     printed.append(
                         (
                             prompt,
-                            x['response'],
+                            x["response"],
                         ),
                     )
                 else:
                     printed.append(
                         (
                             prompt,
-                            x["response"].generations
-                            if provider == "cohere"
-                            else x["response"]["choices"],
+                            (
+                                x["response"].generations
+                                if provider == "cohere"
+                                else x["response"]["choices"]
+                            ),
                         ),
                     )
 
@@ -79,9 +89,9 @@ class LM(ABC):
             if provider == "cohere":
                 text = choices[0].text
             elif provider == "openai" or provider == "ollama":
-                text = ' ' + self._get_choice_text(choices[0]).strip()
-            elif provider == "clarifai" or provider == "claude" :
-                text=choices
+                text = " " + self._get_choice_text(choices[0]).strip()
+            elif provider == "clarifai" or provider == "claude":
+                text = choices
             elif provider == "google":
                 text = choices[0].parts[0].text
             else:
@@ -92,13 +102,9 @@ class LM(ABC):
                 self.print_red(f" \t (and {len(choices)-1} other completions)", end="")
             print("\n\n\n")
 
-    @abstractmethod
-    def __call__(self, prompt, only_completed=True, return_sorted=False, **kwargs):
-        pass
-
     def copy(self, **kwargs):
         """Returns a copy of the language model with the same parameters."""
         kwargs = {**self.kwargs, **kwargs}
-        model = kwargs.pop('model')
+        model = kwargs.pop("model")
 
         return self.__class__(model=model, **kwargs)

@@ -13,7 +13,12 @@ def post_request_metadata(model_name, prompt):
     id_string = str(timestamp) + model_name + prompt
     hashlib.sha1().update(id_string.encode("utf-8"))
     id_hash = hashlib.sha1().hexdigest()
-    return {"id": f"chatcmpl-{id_hash}", "object": "chat.completion", "created": int(timestamp), "model": model_name}
+    return {
+        "id": f"chatcmpl-{id_hash}",
+        "object": "chat.completion",
+        "created": int(timestamp),
+        "model": model_name,
+    }
 
 
 class OllamaLocal(LM):
@@ -83,7 +88,9 @@ class OllamaLocal(LM):
         request_info["choices"] = []
         settings_dict = {
             "model": self.model_name,
-            "options": {k: v for k, v in kwargs.items() if k not in ["n", "max_tokens"]},
+            "options": {
+                k: v for k, v in kwargs.items() if k not in ["n", "max_tokens"]
+            },
             "stream": False,
         }
         if self.model_type == "chat":
@@ -91,7 +98,11 @@ class OllamaLocal(LM):
         else:
             settings_dict["prompt"] = prompt
 
-        urlstr = f"{self.base_url}/api/chat" if self.model_type == "chat" else f"{self.base_url}/api/generate"
+        urlstr = (
+            f"{self.base_url}/api/chat"
+            if self.model_type == "chat"
+            else f"{self.base_url}/api/generate"
+        )
         tot_eval_tokens = 0
         for i in range(kwargs["n"]):
             response = requests.post(urlstr, json=settings_dict, timeout=self.timeout_s)
@@ -119,12 +130,19 @@ class OllamaLocal(LM):
                 },
             )
             tot_eval_tokens += response_json.get("eval_count")
-        request_info["additional_kwargs"] = {k: v for k, v in response_json.items() if k not in ["response"]}
+        request_info["additional_kwargs"] = {
+            k: v for k, v in response_json.items() if k not in ["response"]
+        }
 
         request_info["usage"] = {
-            "prompt_tokens": response_json.get("prompt_eval_count", self._prev_prompt_eval_count),
+            "prompt_tokens": response_json.get(
+                "prompt_eval_count", self._prev_prompt_eval_count
+            ),
             "completion_tokens": tot_eval_tokens,
-            "total_tokens": response_json.get("prompt_eval_count", self._prev_prompt_eval_count) + tot_eval_tokens,
+            "total_tokens": response_json.get(
+                "prompt_eval_count", self._prev_prompt_eval_count
+            )
+            + tot_eval_tokens,
         }
 
         history = {
