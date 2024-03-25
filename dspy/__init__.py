@@ -44,6 +44,7 @@ from dspy.predict.retry import Retry
 from dspy.primitives import *
 from dspy.retrieve import *
 from dspy.signatures import *
+from dspy import evaluate
 
 # Functional must be imported after primitives, predict and signatures
 from dspy.functional import *  # isort: skip

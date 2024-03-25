@@ -100,10 +100,10 @@ class Assert(Constraint):
             if self.result:
                 return True
             elif dspy.settings.bypass_assert:
-                logger.error(f"AssertionError: {self.msg}")
+                # logger.error(f"AssertionError: {self.msg}")
                 return True
             else:
-                logger.error(f"AssertionError: {self.msg}")
+                # logger.error(f"AssertionError: {self.msg}")
                 raise DSPyAssertionError(
                     id=self.id,
                     msg=self.msg,
@@ -123,10 +123,10 @@ class Suggest(Constraint):
             if self.result:
                 return True
             elif dspy.settings.bypass_suggest:
-                logger.error(f"SuggestionFailed: {self.msg}")
+                # logger.error(f"SuggestionFailed: {self.msg}")
                 return True
             else:
-                logger.error(f"SuggestionFailed: {self.msg}")
+                # logger.error(f"SuggestionFailed: {self.msg}")
                 raise DSPySuggestionError(
                     id=self.id,
                     msg=self.msg,
@@ -269,7 +269,7 @@ def backtrack_handler(func, bypass_suggest=True, max_backtracks=2):
                                 dspy.settings.backtrack_to = dsp.settings.trace[-1][0]
 
                             if dspy.settings.backtrack_to is None:
-                                logger.error("Specified module not found in trace")
+                                # logger.error("Specified module not found in trace")
 
                             # save unique feedback message for predictor
                             if (
@@ -297,9 +297,9 @@ def backtrack_handler(func, bypass_suggest=True, max_backtracks=2):
                             error_op.pop("_assert_traces", None)
 
                         else:
-                            logger.error(
-                                "UNREACHABLE: No trace available, this should not happen. Is this run time?",
-                            )
+                            # logger.error(
+                            #     "UNREACHABLE: No trace available, this should not happen. Is this run time?",
+                            # )
 
             return result
 
@@ -334,9 +334,9 @@ def assert_transform_module(
             "Module must have a forward method to have assertions handled.",
         )
     if getattr(module, "_forward", False):
-        logger.info(
-            f"Module {module.__class__.__name__} already has a _forward method. Skipping...",
-        )
+        # logger.info(
+        #     f"Module {module.__class__.__name__} already has a _forward method. Skipping...",
+        # )
         pass  # TODO warning: might be overwriting a previous _forward method
 
     module._forward = module.forward

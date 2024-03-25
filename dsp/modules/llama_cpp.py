@@ -26,6 +26,8 @@ class LlamaCpp(LM):
         only_completed = True
         return_sorted = False
 
+        # print(prompt)
+
         cmpl = self.basic_request(prompt, **kwargs)
 
         hst = {
@@ -38,5 +40,7 @@ class LlamaCpp(LM):
         self.history.append(hst)
 
         cmpl_txts = [choice["text"] for choice in cmpl["choices"]]
+
+        # print(cmpl_txts)
 
         return cmpl_txts
