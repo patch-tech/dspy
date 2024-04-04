@@ -269,6 +269,7 @@ def backtrack_handler(func, bypass_suggest=True, max_backtracks=2):
                                 dspy.settings.backtrack_to = dsp.settings.trace[-1][0]
 
                             if dspy.settings.backtrack_to is None:
+                                pass
                                 # logger.error("Specified module not found in trace")
 
                             # save unique feedback message for predictor
@@ -297,6 +298,7 @@ def backtrack_handler(func, bypass_suggest=True, max_backtracks=2):
                             error_op.pop("_assert_traces", None)
 
                         else:
+                            pass
                             # logger.error(
                             #     "UNREACHABLE: No trace available, this should not happen. Is this run time?",
                             # )
